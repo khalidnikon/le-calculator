@@ -73,6 +73,7 @@ function handle(s: State, key: Key): void {
     if (s.error === null) s.second = !s.second;
     return;
   }
+  // FLAG (not in PRD): 2ND on a key without a 2ND function acts as the primary key.
   const fn: Fn = s.second ? ((SECOND_FNS as Partial<Record<Key, Fn>>)[key] ?? (key as Fn)) : (key as Fn);
   s.second = false;
 
@@ -105,6 +106,8 @@ function dispatch(s: State, fn: Fn): void {
     if (fn === 'CPT') return;
   }
 
+  // FLAG (not in PRD): INV modifies SIN/COS/TAN (with or without HYP), LN and
+  // eˣ only; any other key simply clears it.
   if (fn === 'INV') { s.inv = !s.inv; return; }
   if (fn === 'HYP') { s.hyp = !s.hyp; return; }
   const inv = s.inv;
@@ -504,6 +507,7 @@ function viewVar(s: State): void {
   s.opJustPressed = false;
 }
 
+/** FLAG (not in PRD): opening a worksheet always starts at its first variable. */
 function enterWorksheet(s: State, id: WsId): void {
   resetMath(s);
   s.mode = id;
@@ -524,6 +528,7 @@ function move(s: State, dir: 1 | -1): void {
   viewVar(s);
 }
 
+/** FLAG (not in PRD): ENTER stores the displayed value and discards pending math. */
 function enterKey(s: State): void {
   const cur = currentVar(s);
   const enter = cur?.v.enter;

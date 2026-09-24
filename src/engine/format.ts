@@ -63,6 +63,9 @@ export function formatNumber(value: Decimal.Value, fmt: Formats): string {
     return withSeparators(fmt.dec === 9 ? '0' : new Dec(0).toFixed(fmt.dec), fmt);
   }
   const a = r.abs();
+  // FLAG (not in PRD): values below 1E-9 (no significant digit fits in 10
+  // places) also switch to scientific notation; small values that do fit are
+  // rounded to the DEC setting (0.001 → 0.00).
   if (a.gte('1e10') || a.lt('1e-9')) return sci(r, fmt);
 
   const intDigits = a.gte(1) ? a.trunc().toString().length : 1;
@@ -77,7 +80,11 @@ export function formatNumber(value: Decimal.Value, fmt: Formats): string {
   return withSeparators(plain, fmt);
 }
 
-/** Format the raw digits being keyed (no rounding, no padding). */
+/**
+ * Format the raw digits being keyed (no rounding, no padding).
+ * FLAG (PRD Open items → display): keyed digits show as typed ("5", "5.")
+ * with separators; the real unit's cursor/blinking behavior is not described.
+ */
 export function formatEntry(entry: string, fmt: Formats): string {
   return withSeparators(entry, fmt);
 }
