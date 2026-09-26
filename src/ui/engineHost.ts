@@ -42,6 +42,7 @@ export class EngineHost {
   private busyTimer: ReturnType<typeof setTimeout> | null = null;
   private waiters: (() => void)[] = [];
   private queue: { key: Key; resolve: () => void }[] = [];
+  private inflight: Key | null = null;
 
   constructor(state: State = loadState()) {
     this.state = state;
@@ -69,6 +70,14 @@ export class EngineHost {
           this.finish();
         }
       };
+      // If the worker script can't load (e.g. a host that blocks it), run the
+      // engine on the main thread instead, including the key in flight.
+      this.worker.onerror = () => {
+        this.worker?.terminate();
+        this.worker = null;
+        const key = this.inflight;
+        if (this.busy && key) this.commit(press(this.state, key));
+      };
     } catch {
       this.worker = null;
     }
@@ -83,6 +92,7 @@ export class EngineHost {
   private finish(): void {
     this.busy = false;
     this.busyVisible = false;
+    this.inflight = null;
     if (this.busyTimer) clearTimeout(this.busyTimer);
     this.busyTimer = null;
     this.emit();
@@ -114,6 +124,7 @@ export class EngineHost {
       return Promise.resolve();
     }
     this.busy = true;
+    this.inflight = key;
     this.seq++;
     this.busyTimer = setTimeout(() => {
       this.busyVisible = true;

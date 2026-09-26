@@ -39,6 +39,7 @@ export function App() {
   const [logOpen, setLogOpen] = useState(() => readPref(LOG_PREF_KEY));
   const [helpOpen, setHelpOpen] = useState(false);
   const [script, setScript] = useState('');
+  const [replayError, setReplayError] = useState('');
   const pending2nd = useRef(false);
 
   const onKey = useCallback(
@@ -98,9 +99,10 @@ export function App() {
     try {
       keys = parseScript(script);
     } catch (err) {
-      alert(String(err instanceof Error ? err.message : err));
+      setReplayError(err instanceof Error ? err.message : String(err));
       return;
     }
+    setReplayError('');
     for (const k of keys) await onKey(k);
   };
 
@@ -137,8 +139,9 @@ export function App() {
           <p className="log-body" data-testid="log">{log.join(' ') || '—'}</p>
           <label className="log-replay">
             <span>Replay a script (e.g. <code>P/Y 12 ENTER QUIT 360 N</code>)</span>
-            <textarea value={script} onChange={(e) => setScript(e.target.value)} rows={3} />
+            <textarea id="replay-script" value={script} onChange={(e) => setScript(e.target.value)} rows={3} />
           </label>
+          {replayError && <p className="log-error" role="alert">{replayError}. Check the token spelling and try again.</p>}
           <button type="button" onClick={() => void replay()}>Replay</button>
         </aside>
       )}

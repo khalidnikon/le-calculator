@@ -220,6 +220,7 @@ body { touch-action: manipulation; }
   overflow: auto;
   word-break: break-word;
 }
+.log-error { margin: 0; color: var(--key-clear); }
 .log-replay { display: flex; flex-direction: column; gap: 4px; }
 .log-replay textarea {
   font: 13px var(--mono);
